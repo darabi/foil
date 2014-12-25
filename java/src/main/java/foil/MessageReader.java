@@ -9,7 +9,7 @@
  * 	 the terms of this license.
  *   You must not remove this notice, or any other, from this software.
  */
-package com.richhickey.foil;
+package foil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class MessageReader implements IReader
         this.reflector = reflector;
     	}
     /* (non-Javadoc)
-     * @see com.richhickey.foil.IReader#readMessage(java.io.Reader)
+     * @see foil.IReader#readMessage(java.io.Reader)
      */
     public List readMessage(Reader strm) throws IOException, Exception 
         {

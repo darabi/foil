@@ -9,7 +9,7 @@
  * 	 the terms of this license.
  *   You must not remove this notice, or any other, from this software.
  */
-package com.richhickey.foil;
+package foil;
 import java.util.*;
 import java.io.*;
 /**

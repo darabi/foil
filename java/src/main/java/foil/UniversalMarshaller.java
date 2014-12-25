@@ -9,7 +9,7 @@
  * 	 the terms of this license.
  *   You must not remove this notice, or any other, from this software.
  */
-package com.richhickey.foil;
+package foil;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -23,7 +23,7 @@ public class UniversalMarshaller implements IMarshaller
     {
 
     /* (non-Javadoc)
-     * @see com.richhickey.foil.IMarshaller#marshall(java.lang.Object, java.io.Writer, com.richhickey.foil.IBaseMarshaller, int, int)
+     * @see foil.IMarshaller#marshall(java.lang.Object, java.io.Writer, foil.IBaseMarshaller, int, int)
      */
     public void marshall(Object o, Writer w, IBaseMarshaller baseMarshaller,
             int flags, int depth)  throws IOException

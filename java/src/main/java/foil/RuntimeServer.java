@@ -11,7 +11,7 @@
  * 
  * 
  */
-package com.richhickey.foil;
+package foil;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -439,7 +439,7 @@ public Object processMessages(Reader ins,Writer outs) throws IOException
         }
 
 	/* (non-Javadoc)
-	 * @see com.richhickey.foil.IRuntimeServer#proxyCall(int, int, java.lang.reflect.Method, java.lang.Object, java.lang.Object[])
+	 * @see foil.IRuntimeServer#proxyCall(int, int, java.lang.reflect.Method, java.lang.Object, java.lang.Object[])
 	 */
 	public Object proxyCall(int marshallFlags, int marshallDepth, Method method, Object proxy, Object[] args) throws Exception 
 		{

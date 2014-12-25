@@ -9,7 +9,7 @@
  * 	 the terms of this license.
  *   You must not remove this notice, or any other, from this software.
  */
-package com.richhickey.foil;
+package foil;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -42,7 +42,7 @@ public class Reflector implements IReflector
             }
         
         /* (non-Javadoc)
-         * @see com.richhickey.foil.ICallable#invoke(java.lang.Object, java.util.List)
+         * @see foil.ICallable#invoke(java.lang.Object, java.util.List)
          */
         public Object invoke(Object target, List args)
                 throws InvocationTargetException
@@ -247,7 +247,7 @@ public class Reflector implements IReflector
         }
 
     /* (non-Javadoc)
-     * @see com.richhickey.foil.IReflector#createNew(java.lang.Class, java.util.List)
+     * @see foil.IReflector#createNew(java.lang.Class, java.util.List)
      */
     public Object createNew(Class c, List args) throws Exception
         {
@@ -284,7 +284,7 @@ public class Reflector implements IReflector
     		w.write('"');
     }
     /* (non-Javadoc)
-     * @see com.richhickey.foil.IReflector#members(java.lang.Class, java.io.Writer)
+     * @see foil.IReflector#members(java.lang.Class, java.io.Writer)
      */
     public void members(Class c, Writer w) throws Exception
         {
@@ -516,7 +516,7 @@ public class Reflector implements IReflector
 		}
 
     /* (non-Javadoc)
-     * @see com.richhickey.foil.IReflector#createVector(java.lang.Class, int, java.util.List)
+     * @see foil.IReflector#createVector(java.lang.Class, int, java.util.List)
      */
     public Object createVector(Class c, int length, List inits) throws Exception
         {
@@ -533,7 +533,7 @@ public class Reflector implements IReflector
         }
 
     /* (non-Javadoc)
-     * @see com.richhickey.foil.IReflector#vectorGet(java.lang.Object, int)
+     * @see foil.IReflector#vectorGet(java.lang.Object, int)
      */
     public Object vectorGet(Object v, int index) throws Exception
         {
@@ -541,7 +541,7 @@ public class Reflector implements IReflector
         }
 
     /* (non-Javadoc)
-     * @see com.richhickey.foil.IReflector#vectorSet(java.lang.Object, int, java.lang.Object)
+     * @see foil.IReflector#vectorSet(java.lang.Object, int, java.lang.Object)
      */
     public void vectorSet(Object v, int index, Object val) throws Exception
         {
@@ -549,7 +549,7 @@ public class Reflector implements IReflector
         }
 
     /* (non-Javadoc)
-     * @see com.richhickey.foil.IReflector#vectorLength(java.lang.Object)
+     * @see foil.IReflector#vectorLength(java.lang.Object)
      */
     public Object vectorLength(Object v) throws Exception
         {
@@ -634,7 +634,7 @@ public class Reflector implements IReflector
 	    }
 
     /* (non-Javadoc)
-     * @see com.richhickey.foil.IReflector#bases(java.lang.Class)
+     * @see foil.IReflector#bases(java.lang.Class)
      */
     public List bases(Class c) throws Exception
         {
@@ -667,7 +667,7 @@ public class Reflector implements IReflector
         }
 
 	/* (non-Javadoc)
-	 * @see com.richhickey.foil.IReflector#makeProxy(com.richhickey.foil.IRuntimeServer, int, int, java.util.List)
+	 * @see foil.IReflector#makeProxy(foil.IRuntimeServer, int, int, java.util.List)
 	 */
 	public Object makeProxy(IRuntimeServer runtime, int marshallFlags, int marshallDepth, List interfaceList) throws Exception {
 		Class[] interfaces = new Class[interfaceList.size()];
@@ -678,7 +678,7 @@ public class Reflector implements IReflector
 	}
 
 	/* (non-Javadoc)
-	 * @see com.richhickey.foil.IReflector#getClassNames(java.lang.String, java.util.List)
+	 * @see foil.IReflector#getClassNames(java.lang.String, java.util.List)
 	 */
 	public List getClassNames(String jarfile, List packages) throws Exception{
 		JarFile jar = new JarFile(jarfile);

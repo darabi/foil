@@ -10,7 +10,7 @@
  *   You must not remove this notice, or any other, from this software.
  */
 
-package com.richhickey.foil;
+package foil;
 
 import java.io.IOException;
 import java.io.Writer;

@@ -8,18 +8,15 @@
  *   By using this software in any fashion, you are agreeing to be bound by
  * 	 the terms of this license.
  *   You must not remove this notice, or any other, from this software.
- */
-package com.richhickey.foil;
-
-import java.io.IOException;
-import java.io.Writer;
-
+*/
+package foil;
+import java.io.*;
+import java.lang.reflect.*;
 /**
  * @author Rich
  *
  */
-public interface IMarshaller {
-	void marshall(Object o,Writer w, IBaseMarshaller baseMarshaller, int flags,int depth) 
-		throws IOException;
-
+public interface IRuntimeServer {
+    public Object processMessages(Reader ins,Writer outs) throws IOException;
+    public Object proxyCall(int marshallFlags,int marshallDepth,Method method, Object proxy,Object[] args) throws Exception;
 }
