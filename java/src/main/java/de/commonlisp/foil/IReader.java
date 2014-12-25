@@ -14,12 +14,11 @@ package de.commonlisp.foil;
 import java.io.*;
 import java.util.List;
 
-
 /**
  * @author Rich
  *
  */
 public interface IReader {
-	List readMessage(Reader strm) throws IOException, Exception;
+    List readMessage(Reader strm) throws IOException, Exception;
 
 }

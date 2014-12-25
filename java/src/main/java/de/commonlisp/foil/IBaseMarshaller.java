@@ -19,17 +19,20 @@ import java.io.Writer;
  * @author Rich
  *
  */
-public interface IBaseMarshaller
-    {
+public interface IBaseMarshaller {
     static final int MARSHALL_NO_REFS = 0;
     static final int MARSHALL_ID = 1;
     static final int MARSHALL_TYPE = 2;
     static final int MARSHALL_HASH = 4;
 
-	void marshallAtom(Object o,Writer w, int flags,int depth) throws IOException;
-	boolean canMarshallAsList(Object o);
-	void marshallAsList(Object o,Writer w, int flags,int depth) throws IOException;
-	void marshallAsVector(Object o,Writer w, int flags,int depth) throws IOException;
+    void marshallAtom(Object o, Writer w, int flags, int depth) throws IOException;
+
+    boolean canMarshallAsList(Object o);
+
+    void marshallAsList(Object o, Writer w, int flags, int depth) throws IOException;
+
+    void marshallAsVector(Object o, Writer w, int flags, int depth) throws IOException;
+
     IMarshaller findMarshallerFor(Class c);
 
-    }
+}

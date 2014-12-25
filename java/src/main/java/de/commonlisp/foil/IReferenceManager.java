@@ -16,8 +16,10 @@ package de.commonlisp.foil;
  *
  */
 public interface IReferenceManager {
-	ObjectID getIdForObject(Object o);
-	Object getObjectForId(Object id) throws Exception;
-	void free(Object id,int rev) throws Exception;
+    ObjectID getIdForObject(Object o);
+
+    Object getObjectForId(Object id) throws Exception;
+
+    void free(Object id, int rev) throws Exception;
 
 }

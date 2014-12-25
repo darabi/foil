@@ -9,15 +9,15 @@ package de.commonlisp.foil;
 /**
  * @author Rich
  *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
+ *         TODO To change the template for this generated type comment go to Window - Preferences - Java -
+ *         Code Style - Code Templates
  */
 public class ObjectID {
-public int id;
-public int rev;
-public ObjectID(int id)
-	{
-	this.id = id;
-	this.rev = 0;
-	}
+    public int id;
+    public int rev;
+
+    public ObjectID(int id) {
+        this.id = id;
+        this.rev = 0;
+    }
 }

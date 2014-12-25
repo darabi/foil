@@ -19,7 +19,6 @@ import java.io.Writer;
  *
  */
 public interface IMarshaller {
-	void marshall(Object o,Writer w, IBaseMarshaller baseMarshaller, int flags,int depth) 
-		throws IOException;
+    void marshall(Object o, Writer w, IBaseMarshaller baseMarshaller, int flags, int depth) throws IOException;
 
 }

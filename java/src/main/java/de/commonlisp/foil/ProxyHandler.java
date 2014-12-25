@@ -14,29 +14,30 @@ package de.commonlisp.foil;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
-
 /**
  * @author Rich
  */
 
 public class ProxyHandler implements InvocationHandler {
 
-	IRuntimeServer runtime;
-	int marshallFlags;
-	int marshallDepth;
-	
-	public ProxyHandler(IRuntimeServer runtime,int marshallFlags,int marshallDepth)
-		{
-		this.runtime = runtime;
-		this.marshallFlags = marshallFlags;
-		this.marshallDepth = marshallDepth;
-		}
-	/* (non-Javadoc)
-	 * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object, java.lang.reflect.Method, java.lang.Object[])
-	 */
-	public Object invoke(Object proxy, Method method, Object[] args)
-			throws Throwable {
-		return runtime.proxyCall(marshallFlags,marshallDepth,method,proxy,args);
-	}
+    IRuntimeServer runtime;
+    int marshallFlags;
+    int marshallDepth;
+
+    public ProxyHandler(IRuntimeServer runtime, int marshallFlags, int marshallDepth) {
+        this.runtime = runtime;
+        this.marshallFlags = marshallFlags;
+        this.marshallDepth = marshallDepth;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object, java.lang.reflect.Method,
+     * java.lang.Object[])
+     */
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        return runtime.proxyCall(marshallFlags, marshallDepth, method, proxy, args);
+    }
 
 }

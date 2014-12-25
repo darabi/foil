@@ -15,59 +15,52 @@ import java.io.IOException;
 import java.io.Writer;
 import java.beans.*;
 import java.lang.reflect.*;
+
 /**
  * @author Rich
  *
  */
-public class UniversalMarshaller implements IMarshaller
-    {
+public class UniversalMarshaller implements IMarshaller {
 
-    /* (non-Javadoc)
-     * @see de.commonlisp.foil.IMarshaller#marshall(java.lang.Object, java.io.Writer, de.commonlisp.foil.IBaseMarshaller, int, int)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see de.commonlisp.foil.IMarshaller#marshall(java.lang.Object, java.io.Writer,
+     * de.commonlisp.foil.IBaseMarshaller, int, int)
      */
-    public void marshall(Object o, Writer w, IBaseMarshaller baseMarshaller,
-            int flags, int depth)  throws IOException
+    public void marshall(Object o, Writer w, IBaseMarshaller baseMarshaller, int flags, int depth) throws IOException {
+        if (o.getClass().isArray()) {
+            baseMarshaller.marshallAsVector(o, w, flags, depth);
+        } else if (baseMarshaller.canMarshallAsList(o)) {
+            baseMarshaller.marshallAsList(o, w, flags, depth);
+        } else if (o instanceof Class)
+            baseMarshaller.marshallAtom(((Class) o).getName(), w, flags, depth);
+        else
+        // use beaninfo to dump properties as assoc list
         {
-        if(o.getClass().isArray())
-            {
-            baseMarshaller.marshallAsVector(o,w,flags,depth);
-            }
-        else if(baseMarshaller.canMarshallAsList(o))
-            {
-            baseMarshaller.marshallAsList(o,w,flags,depth);
-            }
-        else if(o instanceof Class)
-            baseMarshaller.marshallAtom(((Class)o).getName(),w,flags,depth);
-        else	
-            //use beaninfo to dump properties as assoc list
-            {
-            try{
+            try {
                 w.write(" (");
                 PropertyDescriptor[] props = Introspector.getBeanInfo(o.getClass()).getPropertyDescriptors();
-                for(int i=0;i<props.length;i++)
-                    {
+                for (int i = 0; i < props.length; i++) {
                     PropertyDescriptor prop = props[i];
-                    //skip getClass generated property
-                    if(prop.getName().equals("class"))
+                    // skip getClass generated property
+                    if (prop.getName().equals("class"))
                         continue;
                     Method m = props[i].getReadMethod();
-                    //must be no-arg property getter
-                    if(m != null && m.getParameterTypes().length == 0)
-                        {
-                        w.write("(:"); //sent as keyword
+                    // must be no-arg property getter
+                    if (m != null && m.getParameterTypes().length == 0) {
+                        w.write("(:"); // sent as keyword
                         w.write(prop.getName());
                         w.write(" . ");
-                        baseMarshaller.marshallAtom(m.invoke(o,null),w,flags,depth);
+                        baseMarshaller.marshallAtom(m.invoke(o, null), w, flags, depth);
                         w.write(')');
-                        }
                     }
+                }
                 w.write(')');
-            	}
-            catch(Exception ex)
-            	{
+            } catch (Exception ex) {
                 throw new IOException(ex.toString());
-            	}
             }
         }
-
     }
+
+}
