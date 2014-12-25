@@ -9,17 +9,15 @@
  * 	 the terms of this license.
  *   You must not remove this notice, or any other, from this software.
  */
-package foil;
-
-import java.io.*;
-import java.util.List;
-
+package de.commonlisp.foil;
 
 /**
  * @author Rich
  *
  */
-public interface IReader {
-	List readMessage(Reader strm) throws IOException, Exception;
+public interface IReferenceManager {
+	ObjectID getIdForObject(Object o);
+	Object getObjectForId(Object id) throws Exception;
+	void free(Object id,int rev) throws Exception;
 
 }

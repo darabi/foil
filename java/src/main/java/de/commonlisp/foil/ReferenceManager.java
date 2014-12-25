@@ -9,7 +9,7 @@
  * 	 the terms of this license.
  *   You must not remove this notice, or any other, from this software.
  */
-package foil;
+package de.commonlisp.foil;
 import java.util.*;
 /**
  * @author Rich
@@ -27,7 +27,7 @@ public class ReferenceManager implements IReferenceManager
         objToId = new IdentityHashMap();
         }
     /* (non-Javadoc)
-     * @see foil.IReferenceManager#getIdForObject(java.lang.Object)
+     * @see de.commonlisp.foil.IReferenceManager#getIdForObject(java.lang.Object)
      */
     public ObjectID getIdForObject(Object o)
     	{
@@ -62,7 +62,7 @@ public class ReferenceManager implements IReferenceManager
 		    }
 	    }
     /* (non-Javadoc)
-     * @see foil.IReferenceManager#free(int)
+     * @see de.commonlisp.foil.IReferenceManager#free(int)
      */
     public void free(Object id,int rev) throws Exception
         {

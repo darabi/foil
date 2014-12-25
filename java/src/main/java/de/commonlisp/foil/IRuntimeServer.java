@@ -8,16 +8,15 @@
  *   By using this software in any fashion, you are agreeing to be bound by
  * 	 the terms of this license.
  *   You must not remove this notice, or any other, from this software.
- */
-package foil;
-
+*/
+package de.commonlisp.foil;
+import java.io.*;
+import java.lang.reflect.*;
 /**
  * @author Rich
  *
  */
-public interface IReferenceManager {
-	ObjectID getIdForObject(Object o);
-	Object getObjectForId(Object id) throws Exception;
-	void free(Object id,int rev) throws Exception;
-
+public interface IRuntimeServer {
+    public Object processMessages(Reader ins,Writer outs) throws IOException;
+    public Object proxyCall(int marshallFlags,int marshallDepth,Method method, Object proxy,Object[] args) throws Exception;
 }

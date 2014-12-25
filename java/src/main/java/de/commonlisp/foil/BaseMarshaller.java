@@ -9,7 +9,7 @@
  * 	 the terms of this license.
  *   You must not remove this notice, or any other, from this software.
  */
-package foil;
+package de.commonlisp.foil;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -86,7 +86,7 @@ public class BaseMarshaller implements IBaseMarshaller
         }
     
     /* (non-Javadoc)
-     * @see foil.IBaseMarshaller#marshallAtom(java.lang.Object, java.io.Writer, int, int)
+     * @see de.commonlisp.foil.IBaseMarshaller#marshallAtom(java.lang.Object, java.io.Writer, int, int)
      */
     public void marshallAtom(Object o, Writer w, int flags, int depth) throws IOException
         {
@@ -198,7 +198,7 @@ public class BaseMarshaller implements IBaseMarshaller
         }
 
     /* (non-Javadoc)
-     * @see foil.IBaseMarshaller#marshallAsList(java.lang.Object, java.io.Writer, int, int)
+     * @see de.commonlisp.foil.IBaseMarshaller#marshallAsList(java.lang.Object, java.io.Writer, int, int)
      */
     public void marshallAsList(Object o, Writer w, int flags, int depth) throws IOException
     	{
@@ -242,7 +242,7 @@ public class BaseMarshaller implements IBaseMarshaller
         }
 
     /* (non-Javadoc)
-     * @see foil.IBaseMarshaller#marshallAsVector(java.lang.Object, java.io.Writer, int, int)
+     * @see de.commonlisp.foil.IBaseMarshaller#marshallAsVector(java.lang.Object, java.io.Writer, int, int)
      */
     public void marshallAsVector(Object o, Writer w, int flags, int depth) throws IOException
         {
