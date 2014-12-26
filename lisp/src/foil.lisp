@@ -161,7 +161,7 @@ please ignore this scratchpad stuff
 (defclass fref ()  
   ((vm :reader fref-vm :initarg :vm )
   (id :reader fref-id :initarg :id)
-  (rev :reader fref-rev :initarg :rev)
+  (rev :accessor fref-rev :initarg :rev)
   (type :accessor fref-type :initarg :type)
   (hash :accessor fref-hash :initarg :hash)
   (val :accessor fref-val :initarg :val))
@@ -176,7 +176,6 @@ please ignore this scratchpad stuff
   (declare (ignorable initargs))
   (setf (gethash (fref-id fref) (fvm-idrev-table (fref-vm fref) ))
 	(fref-rev fref)))
-	   
 
 (defun make-fref (id rev &key type hash val)
   (let ((ret (make-instance 'fref :id id :rev rev :type type :hash hash :val val)))
@@ -197,12 +196,46 @@ please ignore this scratchpad stuff
 (defmethod print-object ((fref fref) stream)
   (format stream "#}~A" (fref-id fref)))
 
+(defmacro with-vm (vm &body body)
+  `(let ((*fvm* ,vm))
+     ,@body))
+
+(defmacro with-vm-of (this &body body)
+  (let ((gthis (gensym)))
+  `(let* ((,gthis ,this)
+          (*fvm* (if (and ,gthis (typep ,gthis 'fref))
+                     (fref-vm ,gthis)
+                   *fvm*)))
+     ,@body)))
+
+(defmacro with-marshalling ((depth &rest flags) &body body)
+  `(let ((*marshalling-depth* ,depth)
+         (*marshalling-flags* (logior ,@flags)))
+     ,@body))
+
 (defclass foreign-vm ()
   ((stream :initarg :stream :reader fvm-stream)
    (idrev-table :initform (make-hash-table) :reader fvm-idrev-table)
    (fref-table :initform (make-value-weak-hash-table) :reader fvm-fref-table)
    (symbol-table :initform (make-hash-table) :reader fvm-symbol-table)
-   (free-list :initform nil :accessor fvm-free-list)))
+   (free-list :initform nil :accessor fvm-free-list)
+   (vendor :initform nil :accessor fvm-vendor)
+   (version :initform nil :accessor fvm-version)))
+
+
+(defmethod initialize-instance :after ((vm foreign-vm) &rest rest)
+  "Retrieve the Java vendor and version from the new VM."
+  (declare (ignorable rest))
+  (with-vm vm
+    (let ((cref (send-message :cref +callable-method+ (send-message :tref "java.lang.System") "getProperty")))
+      (setf (fvm-vendor vm) (send-message :call cref *marshalling-flags* *marshalling-depth* nil "java.vm.vendor"))
+      (setf (fvm-version vm) (send-message :call cref *marshalling-flags* *marshalling-depth* nil "java.version")))))
+
+(eval-when (:compile-toplevel :load-toplevel)
+  (defun ensure-package (name)
+    "find the package or create it if it doesn't exist"
+    (or (find-package name)
+        (make-package name :use '()))))
 
 (defun get-fvm-stream ()
   (if (and *thread-fvm-stream* (eq *fvm* *thread-fvm*))
@@ -299,13 +332,6 @@ please ignore this scratchpad stuff
           (setf (fref-val fref) val))
         fref)
     val))
-
-(eval-when (:compile-toplevel :load-toplevel)
-  (defun ensure-package (name)
-    "find the package or create it if it doesn't exist"
-    (or (find-package name)
-        (make-package name :use '()))))
-
 
 (defun type-arg (arg)
   (etypecase arg
@@ -573,23 +599,6 @@ make-new specialized on the class-symbol"
         ;(setf (get ',ctor-sym :full-class-name) ,full-class-name)
         (defmethod make-new ((class-sym (eql ',class-sym)) &rest args)
           (apply (function ,ctor-sym) args))))))
-
-(defmacro with-vm (vm &body body)
-  `(let ((*fvm* ,vm))
-     ,@body))
-
-(defmacro with-vm-of (this &body body)
-  (let ((gthis (gensym)))
-  `(let* ((,gthis ,this)
-          (*fvm* (if (and ,gthis (typep ,gthis 'fref))
-                     (fref-vm ,gthis)
-                   *fvm*)))
-     ,@body)))
-
-(defmacro with-marshalling ((depth &rest flags) &body body)
-  `(let ((*marshalling-depth* ,depth)
-         (*marshalling-flags* (logior ,@flags)))
-     ,@body))
 
 (defun foil-call-method (class-sym name method-sym this args)
   (with-vm-of this
