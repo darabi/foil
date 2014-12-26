@@ -296,6 +296,13 @@ public class RuntimeServer implements IRuntimeServer, Runnable {
     static String slurpForm(Reader strm) throws IOException {
         StringWriter sw = new StringWriter();
 
+        while (!strm.ready()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                // interrupted, go to sleep again
+            }
+        }
         while (strm.read() != '(')
             ;
         int parenCount = 1;
@@ -339,15 +346,19 @@ public class RuntimeServer implements IRuntimeServer, Runnable {
     }
 
     public void processMessagesOnSocket(int port) throws IOException {
+        @SuppressWarnings("resource")
         ServerSocket ss = new ServerSocket(port);
 
-        Socket s = ss.accept();
-        // s.setTcpNoDelay(true);
-        try {
-            processMessages(new BufferedReader(new InputStreamReader(s.getInputStream())),
-                    new BufferedWriter(new OutputStreamWriter(s.getOutputStream())));
-        } finally {
-            ss.close();
+        while (true) {
+            Socket s = ss.accept();
+            try {
+                // s.setTcpNoDelay(true);
+                processMessages(new BufferedReader(new InputStreamReader(s.getInputStream())),
+                        new BufferedWriter(new OutputStreamWriter(s.getOutputStream())));
+            } catch (Exception e) {
+                e.printStackTrace();
+                s.close();
+            }
         }
     }
 
