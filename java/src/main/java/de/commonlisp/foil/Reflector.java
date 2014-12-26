@@ -569,7 +569,7 @@ public class Reflector implements IReflector {
         }
         ArrayList<String> superNames = new ArrayList<String>(supers.size());
         for (int i = 0; i < supers.size(); i++)
-            superNames.set(i, supers.get(i).getName());
+            superNames.add(supers.get(i).getName());
         return superNames;
     }
 

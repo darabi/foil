@@ -406,6 +406,7 @@ public class RuntimeServer implements IRuntimeServer, Runnable {
     public static void startServer(int port, boolean daemonThread) {
         RuntimeServer r = new RuntimeServer(port);
         Thread t = new Thread(r);
+        t.setName("foilRuntimeServer");
         t.setDaemon(daemonThread);
         t.start();
     }
