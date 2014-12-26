@@ -3,7 +3,7 @@
 
 	<groupId>de.commonlisp</groupId>
 	<artifactId>foil</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0</version>
 	<packaging>jar</packaging>
 
 	<name>foil</name>
@@ -61,7 +61,7 @@
 		<url>https://github.com/darabi/foil</url>
 		<connection>scm:git:git://github.com/darabi/foil.git</connection>
 		<developerConnection>scm:git:git@github.com:darabi/foil.git</developerConnection>
-	  <tag>HEAD</tag>
+	  <tag>v1.0</tag>
   </scm>
 
 	<properties>
