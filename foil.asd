@@ -2,5 +2,9 @@
 
 (asdf:defsystem #:foil
   :depends-on (#:trivial-garbage)
-  :components ((:file "foil")))
+  :serial t
+  :components
+  ((:module "lisp"
+    :components((:module "src"
+                 :components((:file "foil")))))))
 
