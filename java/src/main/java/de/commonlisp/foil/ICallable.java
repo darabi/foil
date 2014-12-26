@@ -32,6 +32,6 @@ public interface ICallable {
     // public final static int STATIC_PROPERTY_GET = 8;
     // public final static int STATIC_PROPERTY_SET = 9;
 
-    Object invoke(Object target, List args) throws InvocationTargetException;
+    Object invoke(Object target, List<?> args) throws InvocationTargetException;
 
 }

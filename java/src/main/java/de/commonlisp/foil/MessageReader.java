@@ -15,7 +15,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.List;
 import java.util.*;
 
 /**
@@ -36,15 +35,16 @@ public class MessageReader implements IReader {
      * 
      * @see de.commonlisp.foil.IReader#readMessage(java.io.Reader)
      */
-    public List readMessage(Reader strm) throws IOException, Exception {
+    public List<?> readMessage(Reader strm) throws IOException, Exception {
         return readSexpr(strm);
     }
 
-    public List readSexpr(Reader strm) throws IOException, Exception {
+    public List<?> readSexpr(Reader strm) throws IOException, Exception {
         return readDelimitedList(strm, '(', ')');
     }
 
-    public List readDelimitedList(Reader strm, int startc, int endc) throws IOException, Exception {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public List<?> readDelimitedList(Reader strm, int startc, int endc) throws IOException, Exception {
 
         int c = strm.read();
         while (Character.isWhitespace((char) c))
@@ -98,9 +98,9 @@ public class MessageReader implements IReader {
             throw new Exception("unsupported macro sequence");
     }
 
-    Object processMacroList(List args) throws Exception {
+    Object processMacroList(List<?> args) throws Exception {
         if (RuntimeServer.isMessage(":box", args)) {
-            Class c = RuntimeServer.typeArg(args.get(1));
+            Class<?> c = RuntimeServer.typeArg(args.get(1));
             if (c == boolean.class)
                 return (args.get(2) == null) ? Boolean.FALSE : Boolean.TRUE;
 
@@ -192,7 +192,7 @@ public class MessageReader implements IReader {
         IReader rdr = new MessageReader(referenceManager, reflector);
         for (;;) {
             try {
-                List msg = rdr.readMessage(strm);
+                List<?> msg = rdr.readMessage(strm);
                 System.out.println(msg.toString());
             } catch (Exception ex) {
                 System.out.println(ex.toString());

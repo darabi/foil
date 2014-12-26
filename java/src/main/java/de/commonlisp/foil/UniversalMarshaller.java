@@ -34,7 +34,7 @@ public class UniversalMarshaller implements IMarshaller {
         } else if (baseMarshaller.canMarshallAsList(o)) {
             baseMarshaller.marshallAsList(o, w, flags, depth);
         } else if (o instanceof Class)
-            baseMarshaller.marshallAtom(((Class) o).getName(), w, flags, depth);
+            baseMarshaller.marshallAtom(((Class<?>) o).getName(), w, flags, depth);
         else
         // use beaninfo to dump properties as assoc list
         {
@@ -52,7 +52,7 @@ public class UniversalMarshaller implements IMarshaller {
                         w.write("(:"); // sent as keyword
                         w.write(prop.getName());
                         w.write(" . ");
-                        baseMarshaller.marshallAtom(m.invoke(o, null), w, flags, depth);
+                        baseMarshaller.marshallAtom(m.invoke(o, (Object []) null), w, flags, depth);
                         w.write(')');
                     }
                 }

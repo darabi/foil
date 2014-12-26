@@ -22,7 +22,7 @@ import java.util.List;
  * @author Rich
  * 
  */
-public class RuntimeServer implements IRuntimeServer {
+public class RuntimeServer implements IRuntimeServer, Runnable {
 
     IReader reader;
 
@@ -32,12 +32,26 @@ public class RuntimeServer implements IRuntimeServer {
 
     IReflector reflector;
 
-    ThreadLocal proxyWriter;
-    ThreadLocal proxyReader;
+    ThreadLocal<Writer> proxyWriter;
+    ThreadLocal<Reader> proxyReader;
+
+    private int port;
+
+    public RuntimeServer(int port) {
+        proxyReader = new ThreadLocal<Reader>();
+        proxyWriter = new ThreadLocal<Writer>();
+        referenceManager = new ReferenceManager();
+        marshaller = new BaseMarshaller(referenceManager);
+        ((BaseMarshaller) marshaller).registerMarshaller(Object.class, new UniversalMarshaller());
+        reflector = new Reflector(marshaller);
+        reader = new MessageReader(referenceManager, reflector);
+
+        this.port = port;
+    }
 
     public RuntimeServer(IReader reader, IBaseMarshaller marshaller, IReferenceManager referenceManager, IReflector reflector) {
-        this.proxyReader = new ThreadLocal();
-        this.proxyWriter = new ThreadLocal();
+        this.proxyReader = new ThreadLocal<Reader>();
+        this.proxyWriter = new ThreadLocal<Writer>();
         this.reader = reader;
         this.marshaller = marshaller;
         this.referenceManager = referenceManager;
@@ -54,7 +68,7 @@ public class RuntimeServer implements IRuntimeServer {
             String errorMesssage = null;
             try {
                 String form = slurpForm(ins);
-                List message = reader.readMessage(new StringReader(form));
+                List<?> message = reader.readMessage(new StringReader(form));
                 // List message = reader.readMessage(ins);
                 if (isMessage(":call", message))
                 // (:call cref marshall-flags marshall-value-depth-limit args ...)
@@ -68,17 +82,17 @@ public class RuntimeServer implements IRuntimeServer {
                 // (:cref member-type tref|"packageQualifiedTypeName" "memberName")
                 {
                     int memberType = intArg(message.get(1));
-                    Class c = typeArg(message.get(2));
+                    Class<?> c = typeArg(message.get(2));
                     String memberName = stringArg(message.get(3));
                     ICallable ret = reflector.getCallable(memberType, c, memberName);
                     resultMessage = createRetString(ret, marshaller, IBaseMarshaller.MARSHALL_ID, 0);
                 } else if (isMessage(":new", message))
                 // (:new tref marshall-flags marshall-value-depth-limit (args ...) property-inits ...)
                 {
-                    Class c = typeArg(message.get(1));
+                    Class<?> c = typeArg(message.get(1));
                     int marshallFlags = intArg(message.get(2));
                     int marshallDepth = intArg(message.get(3));
-                    List args = (List) message.get(4);
+                    List<?> args = (List<?>) message.get(4);
                     Object ret = reflector.createNew(c, args);
                     // set props
                     if (message.size() > 5) {
@@ -88,7 +102,7 @@ public class RuntimeServer implements IRuntimeServer {
                 } else if (isMessage(":tref", message))
                 // (:tref "packageQualifiedTypeName")
                 {
-                    Class c = Class.forName((String) message.get(1));
+                    Class<?> c = Class.forName((String) message.get(1));
                     resultMessage = createRetString(c, marshaller, IBaseMarshaller.MARSHALL_ID, 1);
                 } else if (isMessage(":free", message))
                 // (:free refid refrev ... ...)
@@ -116,7 +130,7 @@ public class RuntimeServer implements IRuntimeServer {
                     resultMessage = createRetString(ret ? Boolean.TRUE : Boolean.FALSE, marshaller, 0, 0);
                 } else if (isMessage(":vector", message)) {
                     // (:vector tref|"packageQualifiedTypeName" length value ...) {
-                    Class c = typeArg(message.get(1));
+                    Class<?> c = typeArg(message.get(1));
                     int length = intArg(message.get(2));
                     Object ret = reflector.createVector(c, length, message.subList(3, message.size()));
                     resultMessage = createRetString(ret, marshaller, IBaseMarshaller.MARSHALL_ID, 0);
@@ -142,7 +156,7 @@ public class RuntimeServer implements IRuntimeServer {
                 } else if (isMessage(":bases", message))
                 // (:bases tref|"packageQualifiedTypeName")
                 {
-                    Class c = typeArg(message.get(1));
+                    Class<?> c = typeArg(message.get(1));
                     StringWriter sw = new StringWriter();
                     sw.write("(:ret");
                     marshaller.marshallAsList(reflector.bases(c), sw, IBaseMarshaller.MARSHALL_ID, 1);
@@ -151,13 +165,13 @@ public class RuntimeServer implements IRuntimeServer {
                 } else if (isMessage(":type-of", message))
                 // (:type-of ref)
                 {
-                    Class c = message.get(1).getClass();
+                    Class<?> c = message.get(1).getClass();
                     resultMessage = createRetString(c, marshaller, IBaseMarshaller.MARSHALL_ID, 1);
                 } else if (isMessage(":is-a", message))
                 // (:is-a ref tref|"packageQualifiedTypeName")
                 {
                     Object o = message.get(1);
-                    Class c = typeArg(message.get(2));
+                    Class<?> c = typeArg(message.get(2));
                     resultMessage = createRetString(c.isInstance(o) ? Boolean.TRUE : Boolean.FALSE, marshaller, 0, 0);
                 } else if (isMessage(":hash", message))
                 // (:hash refid)
@@ -166,7 +180,7 @@ public class RuntimeServer implements IRuntimeServer {
                 } else if (isMessage(":members", message))
                 // (:members :tref|"packageQualifiedTypeName")
                 {
-                    Class c = typeArg(message.get(1));
+                    Class<?> c = typeArg(message.get(1));
                     StringWriter sw = new StringWriter();
                     sw.write("(:ret");
                     reflector.members(c, sw);
@@ -212,8 +226,6 @@ public class RuntimeServer implements IRuntimeServer {
                     throw new Exception("unsupported message");
                 }
             } catch (Throwable ex) {
-                String message;
-                String trace;
                 if (ex instanceof SocketException)
                     throw (IOException) ex;
 
@@ -254,9 +266,9 @@ public class RuntimeServer implements IRuntimeServer {
         return ((Number) o).intValue();
     }
 
-    static Class typeArg(Object arg) throws Exception {
+    static Class<?> typeArg(Object arg) throws Exception {
         if (arg instanceof Class)
-            return (Class) arg;
+            return (Class<?>) arg;
         else if (arg instanceof String) {
             String tname = (String) arg;
             if (tname.equalsIgnoreCase(":int"))
@@ -314,7 +326,7 @@ public class RuntimeServer implements IRuntimeServer {
         return sw.toString();
     }
 
-    static boolean isMessage(String type, List message) {
+    static boolean isMessage(String type, List<?> message) {
         return type.equalsIgnoreCase((String) message.get(0));
     }
 
@@ -331,45 +343,22 @@ public class RuntimeServer implements IRuntimeServer {
 
         Socket s = ss.accept();
         // s.setTcpNoDelay(true);
-        processMessages(new BufferedReader(new InputStreamReader(s.getInputStream())),
-                new BufferedWriter(new OutputStreamWriter(s.getOutputStream())));
-
+        try {
+            processMessages(new BufferedReader(new InputStreamReader(s.getInputStream())),
+                    new BufferedWriter(new OutputStreamWriter(s.getOutputStream())));
+        } finally {
+            ss.close();
+        }
     }
 
     public static void main(String[] args) {
-        IReferenceManager referenceManager = new ReferenceManager();
-        BaseMarshaller baseMarshaller = new BaseMarshaller(referenceManager);
-        baseMarshaller.registerMarshaller(Object.class, new UniversalMarshaller());
-        IReflector reflector = new Reflector(baseMarshaller);
-        IReader reader = new MessageReader(referenceManager, reflector);
-        RuntimeServer server = new RuntimeServer(reader, baseMarshaller, referenceManager, reflector);
-        try {
-            if (args.length >= 1) // port #s, run on sockets
-            {
-                // fire up a background thread for all sockets except first
-                for (int i = 1; i < args.length; i++) {
-                    final RuntimeServer rs = server;
-                    final int port = Integer.parseInt(args[i]);
-                    Runnable r = new Runnable() {
-                        public void run() {
-                            try {
-                                rs.processMessagesOnSocket(port);
-                            } catch (IOException e) {
-
-                            }
-                        }
-                    };
-                    new Thread(r).start();
-                }
-                // app lives with first socket
-                server.processMessagesOnSocket(Integer.parseInt(args[0]));
-            } else // run on stdio
-            {
-                server.processMessages(new BufferedReader(new InputStreamReader(System.in)), new BufferedWriter(new OutputStreamWriter(
-                        System.out)));
-            }
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+        if (args.length >= 1) // port #, run on sockets
+        {
+            final int port = Integer.parseInt(args[0]);
+            startServer(port, false);
+        } else {
+            System.err.println("\nusage: RuntimeServer <tcp port>\n");
+            System.exit(1);
         }
     }
 
@@ -412,5 +401,20 @@ public class RuntimeServer implements IRuntimeServer {
         writer.flush();
 
         return processMessages(reader, writer);
+    }
+
+    public static void startServer(int port, boolean daemonThread) {
+        RuntimeServer r = new RuntimeServer(port);
+        Thread t = new Thread(r);
+        t.setDaemon(daemonThread);
+        t.start();
+    }
+
+    public void run() {
+        try {
+            processMessagesOnSocket(port);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

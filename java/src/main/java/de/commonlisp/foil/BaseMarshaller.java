@@ -14,6 +14,7 @@ package de.commonlisp.foil;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
+import java.util.Map.Entry;
 import java.lang.reflect.*;
 
 /**
@@ -22,35 +23,33 @@ import java.lang.reflect.*;
  */
 public class BaseMarshaller implements IBaseMarshaller {
     IReferenceManager referenceManager;
-    Map marshallerMap;
-    Map marshallerCache;
+    Map<Class<?>,IMarshaller> marshallerMap;
+    Map<Class<?>,IMarshaller> marshallerCache;
 
     public BaseMarshaller(IReferenceManager referenceManager) {
         this.referenceManager = referenceManager;
-        this.marshallerMap = new LinkedHashMap();
-        this.marshallerCache = new HashMap();
+        this.marshallerMap = new LinkedHashMap<Class<?>,IMarshaller>();
+        this.marshallerCache = new HashMap<Class<?>,IMarshaller>();
     }
 
-    public void registerMarshaller(Class target, IMarshaller marshaller) {
+    public void registerMarshaller(Class<?> target, IMarshaller marshaller) {
         marshallerMap.put(target, marshaller);
     }
 
-    public IMarshaller findMarshallerFor(Class c) {
+    public IMarshaller findMarshallerFor(Class<?> c) {
         // already seen this type?
         if (marshallerCache.containsKey(c))
-            return (IMarshaller) marshallerCache.get(c);
+            return marshallerCache.get(c);
         // see if exact match has been registered
-        IMarshaller m = (IMarshaller) marshallerMap.get(c);
+        IMarshaller m = marshallerMap.get(c);
         if (m == null) {
-            Class bestbase = null;
+            Class<?> bestbase = null;
             // see if a base has been registered
-            Iterator i = marshallerMap.entrySet().iterator();
-            while (i.hasNext()) {
-                Map.Entry e = (Map.Entry) i.next();
-                Class trybase = (Class) e.getKey();
+            for(Entry<Class<?>, IMarshaller> e : marshallerMap.entrySet()) {
+                Class<?> trybase = e.getKey();
                 if (trybase.isAssignableFrom(c) && isMoreSpecific(trybase, bestbase)) {
                     bestbase = trybase;
-                    m = (IMarshaller) e.getValue();
+                    m = e.getValue();
                 }
             }
         }
@@ -59,13 +58,13 @@ public class BaseMarshaller implements IBaseMarshaller {
         return m;
     }
 
-    boolean isMoreSpecific(Class c1, Class c2) {
+    boolean isMoreSpecific(Class<?> c1, Class<?> c2) {
         if (c2 == null)
             return true;
         return (c2.isAssignableFrom(c1) && !c1.isAssignableFrom(c2));
     }
 
-    boolean isPrimitive(Class c) {
+    boolean isPrimitive(Class<?> c) {
         return c == Integer.class || c == Long.class || c == Double.class || c == Float.class || c == Boolean.class || c == Character.class
                 || c == Short.class || c == Byte.class;
     }
@@ -82,7 +81,7 @@ public class BaseMarshaller implements IBaseMarshaller {
             return;
         }
 
-        Class c = o.getClass();
+        Class<?> c = o.getClass();
         if (isPrimitive(c)) {
             if (o instanceof Boolean) {
                 boolean b = ((Boolean) o).booleanValue();
@@ -100,7 +99,7 @@ public class BaseMarshaller implements IBaseMarshaller {
             // TODO make this more efficient
             w.write(((String) o).replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\""));
             w.write('"');
-        } else if (o instanceof Class && ((Class) o).isPrimitive()) {
+        } else if (o instanceof Class && ((Class<?>) o).isPrimitive()) {
             if (o == int.class)
                 w.write(":int");
             else if (o == long.class)
@@ -175,11 +174,11 @@ public class BaseMarshaller implements IBaseMarshaller {
 
     public void doMarshallAsList(Object o, Writer w, int flags, int depth) throws IOException {
         w.write('(');
-        Iterator i = null;
+        Iterator<?> i = null;
         if (o instanceof Collection)
-            i = ((Collection) o).iterator();
+            i = ((Collection<?>) o).iterator();
         else if (o instanceof Iterator)
-            i = (Iterator) o;
+            i = (Iterator<?>) o;
         else if (o instanceof Object[])
             i = Arrays.asList((Object[]) o).iterator();
 
@@ -188,7 +187,7 @@ public class BaseMarshaller implements IBaseMarshaller {
                 marshallAtom(i.next(), w, flags, depth);
             }
         } else if (o instanceof Enumeration) {
-            for (Enumeration e = (Enumeration) o; e.hasMoreElements();) {
+            for (Enumeration<?> e = (Enumeration<?>) o; e.hasMoreElements();) {
                 marshallAtom(e.nextElement(), w, flags, depth);
             }
         } else if (o.getClass().isArray()) {

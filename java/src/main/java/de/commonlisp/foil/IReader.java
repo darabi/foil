@@ -19,6 +19,6 @@ import java.util.List;
  *
  */
 public interface IReader {
-    List readMessage(Reader strm) throws IOException, Exception;
+    List<?> readMessage(Reader strm) throws IOException, Exception;
 
 }

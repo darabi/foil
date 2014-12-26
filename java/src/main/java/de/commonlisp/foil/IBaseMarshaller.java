@@ -33,6 +33,6 @@ public interface IBaseMarshaller {
 
     void marshallAsVector(Object o, Writer w, int flags, int depth) throws IOException;
 
-    IMarshaller findMarshallerFor(Class c);
+    IMarshaller findMarshallerFor(Class<?> c);
 
 }

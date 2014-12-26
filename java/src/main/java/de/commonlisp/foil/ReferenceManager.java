@@ -18,13 +18,13 @@ import java.util.*;
  *
  */
 public class ReferenceManager implements IReferenceManager {
-    Hashtable idToObj; // int->Object
-    IdentityHashMap objToId; // Object->ObjectId
+    Hashtable<Integer, Object> idToObj; // int->Object
+    IdentityHashMap<Object, ObjectID> objToId; // Object->ObjectId
     int nextId = 1;
 
     public ReferenceManager() {
-        idToObj = new Hashtable();
-        objToId = new IdentityHashMap();
+        idToObj = new Hashtable<Integer, Object>();
+        objToId = new IdentityHashMap<Object, ObjectID>();
     }
 
     /*

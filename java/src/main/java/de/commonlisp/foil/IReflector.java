@@ -23,15 +23,15 @@ public interface IReflector {
      * @author Rich
      *
      */
-    ICallable getCallable(int memberType, Class c, String memberName) throws Exception;
+    ICallable getCallable(int memberType, Class<?> c, String memberName) throws Exception;
 
-    Object createNew(Class c, List args) throws Exception;
+    Object createNew(Class<?> c, List<?> args) throws Exception;
 
-    void members(Class c, Writer w) throws Exception;
+    void members(Class<?> c, Writer w) throws Exception;
 
-    List bases(Class c) throws Exception;
+    List<String> bases(Class<?> c) throws Exception;
 
-    Object createVector(Class c, int length, List inits) throws Exception;
+    Object createVector(Class<?> c, int length, List<?> inits) throws Exception;
 
     Object vectorGet(Object v, int index) throws Exception;
 
@@ -39,9 +39,9 @@ public interface IReflector {
 
     Object vectorLength(Object v) throws Exception;
 
-    void setProps(Object o, List nameValuePairs) throws Exception;
+    void setProps(Object o, List<?> nameValuePairs) throws Exception;
 
-    Object makeProxy(IRuntimeServer runtime, int marshallFlags, int marshallDepth, List interfaces) throws Exception;
+    Object makeProxy(IRuntimeServer runtime, int marshallFlags, int marshallDepth, List<?> interfaces) throws Exception;
 
-    List getClassNames(String jarfile, List packages) throws Exception;
+    List<?> getClassNames(String jarfile, List<?> packages) throws Exception;
 }

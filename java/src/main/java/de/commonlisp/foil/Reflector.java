@@ -15,8 +15,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
 import java.beans.*;
 
 /**
@@ -46,7 +46,7 @@ public class Reflector implements IReflector {
          * 
          * @see de.commonlisp.foil.ICallable#invoke(java.lang.Object, java.util.List)
          */
-        public Object invoke(Object target, List args) throws InvocationTargetException {
+        public Object invoke(Object target, List<?> args) throws InvocationTargetException {
             try {
                 if (args.size() == 0) // get
                 {
@@ -65,19 +65,18 @@ public class Reflector implements IReflector {
     }
 
     public class CallableMethod implements ICallable {
-        List methods;
+        List<Method> methods;
 
-        public CallableMethod(List methods) {
+        public CallableMethod(List<Method> methods) {
             this.methods = methods;
         }
 
-        public Object invoke(Object target, List args) throws InvocationTargetException {
+        public Object invoke(Object target, List<?> args) throws InvocationTargetException {
             // Object target = args.get(0);
             // args = args.subList(1,args.size());
-            for (Iterator i = methods.iterator(); i.hasNext();) {
-                Method m = (Method) i.next();
+            for (Method m : methods) {
 
-                Class[] params = m.getParameterTypes();
+                Class<?>[] params = m.getParameterTypes();
                 if (isCongruent(params, args)) {
                     Object[] boxedArgs = boxArgs(params, args);
                     try {
@@ -91,26 +90,26 @@ public class Reflector implements IReflector {
         }
     }
 
-    static Object[] boxArgs(Class[] params, List args) {
+    static Object[] boxArgs(Class<?>[] params, List<?> args) {
         if (params.length == 0)
             return null;
         Object[] ret = new Object[params.length];
         for (int i = 0; i < params.length; i++) {
             Object arg = args.get(i);
-            Class paramType = params[i];
+            Class<?> paramType = params[i];
             ret[i] = boxArg(paramType, arg);
         }
         return ret;
     }
 
-    static Object boxArg(Class paramType, Object arg) {
+    static Object boxArg(Class<?> paramType, Object arg) {
         if (paramType == boolean.class && arg == null)
             return Boolean.FALSE;
         else
             return arg;
     }
 
-    static boolean isCongruent(Class[] params, List args) {
+    static boolean isCongruent(Class<?>[] params, List<?> args) {
         boolean ret = false;
         if (args == null)
             return params.length == 0;
@@ -118,8 +117,8 @@ public class Reflector implements IReflector {
             ret = true;
             for (int i = 0; ret && i < params.length; i++) {
                 Object arg = args.get(i);
-                Class argType = (arg == null) ? null : arg.getClass();
-                Class paramType = params[i];
+                Class<?> argType = (arg == null) ? null : arg.getClass();
+                Class<?> paramType = params[i];
                 if (paramType == boolean.class) {
                     ret = arg == null || argType == Boolean.class;
                 } else if (paramType.isPrimitive()) {
@@ -147,7 +146,7 @@ public class Reflector implements IReflector {
         return ret;
     }
 
-    public ICallable getCallable(int memberType, Class c, String memberName) throws Exception {
+    public ICallable getCallable(int memberType, Class<?> c, String memberName) throws Exception {
         switch (memberType) {
         case ICallable.METHOD:
             return getMethod(c, memberName);
@@ -162,9 +161,9 @@ public class Reflector implements IReflector {
         }
     }
 
-    ICallable getMethod(Class c, String method) throws Exception {
+    ICallable getMethod(Class<?> c, String method) throws Exception {
         Method[] allmethods = c.getMethods();
-        ArrayList methods = new ArrayList();
+        ArrayList<Method> methods = new ArrayList<Method>();
         for (int i = 0; i < allmethods.length; i++) {
             if (method.equals(allmethods[i].getName()))
                 methods.add(allmethods[i]);
@@ -174,7 +173,7 @@ public class Reflector implements IReflector {
         return new CallableMethod(methods);
     }
 
-    ICallable getField(Class c, String field) throws Exception {
+    ICallable getField(Class<?> c, String field) throws Exception {
         Field[] allfields = c.getDeclaredFields();
         for (int i = 0; i < allfields.length; i++) {
             if (field.equals(allfields[i].getName()))
@@ -183,9 +182,9 @@ public class Reflector implements IReflector {
         throw new Exception("no field found");
     }
 
-    ICallable getPropertyGetter(Class c, String property) throws Exception {
+    ICallable getPropertyGetter(Class<?> c, String property) throws Exception {
         PropertyDescriptor[] props = Introspector.getBeanInfo(c).getPropertyDescriptors();
-        ArrayList methods = new ArrayList();
+        ArrayList<Method> methods = new ArrayList<Method>();
         for (int i = 0; i < props.length; i++) {
             if (property.equals(props[i].getName()))
                 methods.add(props[i].getReadMethod());
@@ -195,9 +194,9 @@ public class Reflector implements IReflector {
         return new CallableMethod(methods);
     }
 
-    ICallable getPropertySetter(Class c, String property) throws Exception {
+    ICallable getPropertySetter(Class<?> c, String property) throws Exception {
         PropertyDescriptor[] props = Introspector.getBeanInfo(c).getPropertyDescriptors();
-        ArrayList methods = new ArrayList();
+        ArrayList<Method> methods = new ArrayList<Method>();
         for (int i = 0; i < props.length; i++) {
             if (property.equals(props[i].getName()))
                 methods.add(props[i].getWriteMethod());
@@ -212,11 +211,11 @@ public class Reflector implements IReflector {
      * 
      * @see de.commonlisp.foil.IReflector#createNew(java.lang.Class, java.util.List)
      */
-    public Object createNew(Class c, List args) throws Exception {
-        Constructor[] ctors = c.getConstructors();
+    public Object createNew(Class<?> c, List<?> args) throws Exception {
+        Constructor<?>[] ctors = c.getConstructors();
         for (int i = 0; i < ctors.length; i++) {
-            Constructor ctor = ctors[i];
-            Class[] params = ctor.getParameterTypes();
+            Constructor<?> ctor = ctors[i];
+            Class<?>[] params = ctor.getParameterTypes();
             if (isCongruent(params, args)) {
                 Object[] boxedArgs = boxArgs(params, args);
                 try {
@@ -229,7 +228,7 @@ public class Reflector implements IReflector {
         throw new InvocationTargetException(new Exception("no matching ctor found"));
     }
 
-    void writeTypeSymbol(Class c, Writer w) throws Exception {
+    void writeTypeSymbol(Class<?> c, Writer w) throws Exception {
         w.write(' ');
         if (c.isPrimitive())
             w.write(':');
@@ -246,18 +245,18 @@ public class Reflector implements IReflector {
      * 
      * @see de.commonlisp.foil.IReflector#members(java.lang.Class, java.io.Writer)
      */
-    public void members(Class c, Writer w) throws Exception {
+    public void members(Class<?> c, Writer w) throws Exception {
         w.write(" (");
 
-        Constructor[] ctors = c.getConstructors();
+        Constructor<?>[] ctors = c.getConstructors();
         if (ctors.length > 0) {
             w.write("(:ctors ");
             // w.write("(:sigs ");
             for (int i = 0; i < ctors.length; i++) {
                 w.write('(');
-                Constructor ctor = ctors[i];
+                Constructor<?> ctor = ctors[i];
                 // baseMarshaller.marshallAtom(ctor.toString(),w,0,0);
-                Class[] params = ctor.getParameterTypes();
+                Class<?>[] params = ctor.getParameterTypes();
                 for (int p = 0; p < params.length; p++) {
                     writeTypeSymbol(params[p], w);
                 }
@@ -300,7 +299,7 @@ public class Reflector implements IReflector {
                 // reflectMethodSignature(method,w);
                 w.write('(');
                 writeTypeSymbol(method.getReturnType(), w);
-                Class[] params = method.getParameterTypes();
+                Class<?>[] params = method.getParameterTypes();
                 for (int p = 0; p < params.length; p++) {
                     writeTypeSymbol(params[p], w);
                 }
@@ -423,14 +422,14 @@ public class Reflector implements IReflector {
     }
 
     void reflectMethodSignature(Method method, Writer w) throws IOException {
-        Class[] params = method.getParameterTypes();
+        Class<?>[] params = method.getParameterTypes();
         reflectParams(params, w);
         w.write("(:ret");
         baseMarshaller.marshallAtom(method.getReturnType(), w, IBaseMarshaller.MARSHALL_ID, 1);
         w.write(')');
     }
 
-    void reflectParams(Class[] params, Writer w) throws IOException {
+    void reflectParams(Class<?>[] params, Writer w) throws IOException {
         w.write("(:args ");
         for (int p = 0; p < params.length; p++) {
             w.write('(');
@@ -454,7 +453,7 @@ public class Reflector implements IReflector {
      * 
      * @see de.commonlisp.foil.IReflector#createVector(java.lang.Class, int, java.util.List)
      */
-    public Object createVector(Class c, int length, List inits) throws Exception {
+    public Object createVector(Class<?> c, int length, List<?> inits) throws Exception {
         Object ret = Array.newInstance(c, length);
         boolean isNumeric = isNumericType(c);
         for (int i = 0; i < inits.size(); i++) {
@@ -493,11 +492,11 @@ public class Reflector implements IReflector {
         return new Integer(Array.getLength(v));
     }
 
-    static boolean isNumericType(Class c) {
+    static boolean isNumericType(Class<?> c) {
         return c == int.class || c == double.class || c == long.class || c == float.class || c == short.class || c == byte.class;
     }
 
-    static Object numericConvert(Class targetType, Object num) throws Exception {
+    static Object numericConvert(Class<?> targetType, Object num) throws Exception {
         Number n = (Number) num;
         if (targetType == int.class) {
             return new Integer(n.intValue());
@@ -516,7 +515,7 @@ public class Reflector implements IReflector {
 
     }
 
-    public void setProps(Object o, List nameValuePairs) throws Exception {
+    public void setProps(Object o, List<?> nameValuePairs) throws Exception {
         // presumes name is :-prefixed
         PropertyDescriptor[] props = Introspector.getBeanInfo(o.getClass()).getPropertyDescriptors();
         for (int i = 0; i < nameValuePairs.size(); i += 2) {
@@ -547,18 +546,18 @@ public class Reflector implements IReflector {
      * 
      * @see de.commonlisp.foil.IReflector#bases(java.lang.Class)
      */
-    public List bases(Class c) throws Exception {
-        ArrayList supers = new ArrayList();
+    public List<String> bases(Class<?> c) throws Exception {
+        ArrayList<Class<?>> supers = new ArrayList<Class<?>>();
         if (c.isInterface())
             supers.add(Object.class);
         else if (c.getSuperclass() != null)
             supers.add(c.getSuperclass());
-        Class[] interfaces = c.getInterfaces();
+        Class<?>[] interfaces = c.getInterfaces();
         for (int i = 0; i < interfaces.length; i++) {
-            Class inter = interfaces[i];
+            Class<?> inter = interfaces[i];
             boolean placed = false;
             for (int p = 0; !placed && p < supers.size(); p++) {
-                Class s = (Class) supers.get(p);
+                Class<?> s = supers.get(p);
                 if (s.isAssignableFrom(inter)) {
                     supers.add(p, inter);
                     placed = true;
@@ -568,9 +567,10 @@ public class Reflector implements IReflector {
                 supers.add(inter);
 
         }
+        ArrayList<String> superNames = new ArrayList<String>(supers.size());
         for (int i = 0; i < supers.size(); i++)
-            supers.set(i, ((Class) supers.get(i)).getName());
-        return supers;
+            superNames.set(i, supers.get(i).getName());
+        return superNames;
     }
 
     /*
@@ -579,8 +579,8 @@ public class Reflector implements IReflector {
      * @see de.commonlisp.foil.IReflector#makeProxy(de.commonlisp.foil.IRuntimeServer, int, int,
      * java.util.List)
      */
-    public Object makeProxy(IRuntimeServer runtime, int marshallFlags, int marshallDepth, List interfaceList) throws Exception {
-        Class[] interfaces = new Class[interfaceList.size()];
+    public Object makeProxy(IRuntimeServer runtime, int marshallFlags, int marshallDepth, List<?> interfaceList) throws Exception {
+        Class<?>[] interfaces = new Class[interfaceList.size()];
         for (int i = 0; i < interfaces.length; i++)
             interfaces[i] = RuntimeServer.typeArg(interfaceList.get(i));
         return Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), interfaces, new ProxyHandler(runtime, marshallFlags,
@@ -592,13 +592,12 @@ public class Reflector implements IReflector {
      * 
      * @see de.commonlisp.foil.IReflector#getClassNames(java.lang.String, java.util.List)
      */
-    public List getClassNames(String jarfile, List packages) throws Exception {
+    public List<?> getClassNames(String jarfile, List<?> packages) throws Exception {
         JarFile jar = new JarFile(jarfile);
-        Enumeration entries = jar.entries();
-        ArrayList names = new ArrayList();
-
+        Enumeration<JarEntry> entries = jar.entries();
+        ArrayList<String> names = new ArrayList<String>();
         while (entries.hasMoreElements()) {
-            ZipEntry entry = (ZipEntry) entries.nextElement();
+            JarEntry entry = entries.nextElement();
             if (!entry.isDirectory()) {
                 String ename = entry.getName();
                 if (ename.endsWith(".class") && (!(ename.indexOf('$') >= 0 && Character.isDigit(ename.charAt((ename.indexOf('$') + 1)))))
@@ -607,10 +606,11 @@ public class Reflector implements IReflector {
                 }
             }
         }
+        jar.close();
         return names;
     }
 
-    boolean matchesSomePackage(String classname, List packages) {
+    boolean matchesSomePackage(String classname, List<?> packages) {
         for (int i = 0; i < packages.size(); i++) {
             String p = (String) packages.get(i);
             if (classname.startsWith(p) && (!p.endsWith("/") // recursive, we'll take any below
