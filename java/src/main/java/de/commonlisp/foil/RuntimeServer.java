@@ -349,16 +349,27 @@ public class RuntimeServer implements IRuntimeServer, Runnable {
         @SuppressWarnings("resource")
         ServerSocket ss = new ServerSocket(port);
 
+        int i = 0;
         while (true) {
-            Socket s = ss.accept();
-            try {
-                // s.setTcpNoDelay(true);
-                processMessages(new BufferedReader(new InputStreamReader(s.getInputStream())),
-                        new BufferedWriter(new OutputStreamWriter(s.getOutputStream())));
-            } catch (Exception e) {
-                e.printStackTrace();
-                s.close();
-            }
+            final Socket s = ss.accept();
+            Thread t = new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        // s.setTcpNoDelay(true);
+                        processMessages(new BufferedReader(new InputStreamReader(s.getInputStream())), new BufferedWriter(
+                                new OutputStreamWriter(s.getOutputStream())));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        try {
+                            s.close();
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                }
+            });
+            t.setName("runtimeServerWorker-" + i++);
+            t.start();
         }
     }
 
