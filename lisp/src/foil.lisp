@@ -42,7 +42,7 @@
    :new-proxy
    :make-new-proxy
    :handle-proxy-call
-   
+
    :with-vm
    :with-vm-of
 
@@ -814,11 +814,11 @@ The resulting file will not need a VM running to either compile or load"
       (format t "def-foil ~A~%" name)
       (let ((defs (do-def-foil-class name)))
         (dolist (def defs)
-          (case (car def) 
+          (case (car def)
             (ensure-package (push def ensures))
             (export (push (second def) (gethash (third def) exports)))
             (t (push def forms))))))
-    (format strm "(eval-when (:compile-toplevel :load-toplevel)~{~S~%~})~{~S~%~}"
+    (format strm "(in-package :foil)~%(eval-when (:compile-toplevel :load-toplevel)~%~{~S~%~})~{~S~%~}"
             (remove-duplicates ensures :test #'string-equal :key #'second)
             (nreverse forms))
     (maphash (lambda (package syms)
